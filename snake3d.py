@@ -18,11 +18,18 @@ class Snake3d:
     def __init__(self, mc, position, direction, length):
         self.mc = mc
         self.position = position
-        if(not(direction in [0,1,2,3,4,5])):
-           direction = 0
         self.directions = ["D","N","E","S","W","U"]
-        #direction is one of six values: N,E,S,W,U,D
-        self.direction = direction
+        if direction in self.directions:
+            self.direction = self.directions.index(direction)
+        else:
+            self.direction = 0
+
+        #The snake's initial heading is set to be the same as its
+        #initial direction.
+        #The snake's current direction may change to avoid obstacles
+        #but it's heading (general direction of travel)
+        #will change less often
+        self.heading = self.direction
         self.length = length
         self.tail = []
         x = self.position.x
@@ -62,22 +69,27 @@ class Snake3d:
     def move(self):
         #self.mc.postToChat("starting move")
         #newLocation = self.get_next_loc()
-        bNoCollision = False
-        for i in range(0,6):
-            self.direction = i
-            #self.mc.postToChat("direction: "+str(self.direction))
+        self.direction = 0 #Try going down first
+        newLocation = self.get_next_loc()
+        bCollision = collisionAt(self.mc, newLocation)
+        if(True == bCollision):
+            self.direction = self.heading
             newLocation = self.get_next_loc()
-            #if(newLocation.y - self.tail[len(self.tail)-1].y < 2):
-            #don't try to go higher than one above tip of tail
-            if(False == collisionAt(self.mc, newLocation)):
-                bNoCollision = True
-                break
-            
-            
-
+            bCollision = collisionAt(self.mc, newLocation)        
+            if(True == bCollision):
+                for i in range(1,6):
+                    if(i == self.heading):
+                        continue
+                    self.direction = i
+                    #self.mc.postToChat("direction: "+str(self.direction))
+                    newLocation = self.get_next_loc()
+                    bCollision = collisionAt(self.mc, newLocation)      
+                    if(False == bCollision):
+                        break
+                    
         self.mc.postToChat("newLocation: "+str(newLocation.x)+","+str(newLocation.y)+","+str(newLocation.z))
             
-        if(bNoCollision):
+        if(not(bCollision)):
             self.mc.postToChat("no collision")
             self.position = newLocation
             self.tail.insert(0,newLocation)
