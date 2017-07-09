@@ -13,11 +13,28 @@ mc.player.setPos(100,10,104)
 
 #Post message to minecraft
 mc.postToChat("Minecraft snake 3d")
-
-pos = Vector3d(100,0,100)
-snake = Snake3d(mc,pos,"W",10)
-snake.draw()
-while True:
-    snake.move()
-    time.sleep(0.2)
+snakes = []
+for i in range(0,5):
+    pos = Vector3d(100-i*5,0,100+i*5)
+    snake = Snake3d(pos,"W",10,6)
+    snakes.append(snake) 
+    #Have the snake object run in the background
+    snake.daemon
+    #The threading.Thread start method
+    #will invoke the snake's run method
+    snake.start()
+#snake.draw()
+    
+#Loop until Ctrl+C is pressed
+try:
+    while True:
+        #do nothing
+        pass
+except KeyboardInterrupt:
+    print("stopped")
+finally:
+    #stop all the snakes (instances of Threads)
+    for snake in snakes:
+        snake.stop()
+    
     

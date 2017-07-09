@@ -6,18 +6,14 @@ from vector3d import Vector3d
 import mcpi.minecraft as minecraft
 import mcpi.block as block
 from math import *
-
-def collisionAt(mc, location):
-    blockAtLoc = mc.getBlock(location.x, location.y, location.z)
-    if(blockAtLoc == block.AIR.id):
-        return False
-    else:
-        return True
+import time
+import threading
        
-class Snake3d:
-    def __init__(self, mc, position, direction, length):
-        self.mc = mc
+class Snake3d(threading.Thread):
+    def __init__(self, position, direction, length, health):
         self.position = position
+        self.block_id = block.WOOL.id
+        self.wool_color = 14
         self.directions = ["D","N","E","S","W","U"]
         if direction in self.directions:
             self.direction = self.directions.index(direction)
@@ -31,18 +27,29 @@ class Snake3d:
         #will change less often
         self.heading = self.direction
         self.length = length
+        self.health = health
         self.tail = []
         x = self.position.x
         y = self.position.y
         z = self.position.z
         loc = Vector3d(x,y,z)
         self.tail.insert(0, loc)
-          
+        threading.Thread.__init__(self)
+
+    def collisionAt(self, location):
+        blockAtLoc = self.mc.getBlock(location.x, location.y, location.z)
+        if(blockAtLoc == block.AIR.id):
+            #self.mc.postToChat("no collision")
+            return False
+        else:
+            #self.mc.postToChat("collision")
+            return True
+        
     def draw(self):
         #self.mc.postToChat("Drawing segments of snake")
         for segment in self.tail:
             #self.mc.postToChat("Segment: "+str(segment.x)+","+str(segment.y)+","+str(segment.z))
-            self.mc.setBlock(int(segment.x), int(segment.y), int(segment.z), block.DIAMOND_BLOCK.id)
+            self.mc.setBlock(int(segment.x), int(segment.y), int(segment.z), self.block_id, self.wool_color)
 
     def erase(self):
         for segment in self.tail:
@@ -71,11 +78,11 @@ class Snake3d:
         #newLocation = self.get_next_loc()
         self.direction = 0 #Try going down first
         newLocation = self.get_next_loc()
-        bCollision = collisionAt(self.mc, newLocation)
+        bCollision = self.collisionAt(newLocation)
         if(True == bCollision):
             self.direction = self.heading
             newLocation = self.get_next_loc()
-            bCollision = collisionAt(self.mc, newLocation)        
+            bCollision = self.collisionAt(newLocation)        
             if(True == bCollision):
                 for i in range(1,6):
                     if(i == self.heading):
@@ -83,17 +90,17 @@ class Snake3d:
                     self.direction = i
                     #self.mc.postToChat("direction: "+str(self.direction))
                     newLocation = self.get_next_loc()
-                    bCollision = collisionAt(self.mc, newLocation)      
+                    bCollision = self.collisionAt(newLocation)      
                     if(False == bCollision):
                         break
                     
-        self.mc.postToChat("newLocation: "+str(newLocation.x)+","+str(newLocation.y)+","+str(newLocation.z))
+        #self.mc.postToChat("newLocation: "+str(newLocation.x)+","+str(newLocation.y)+","+str(newLocation.z))
             
         if(not(bCollision)):
-            self.mc.postToChat("no collision")
+            #self.mc.postToChat("no collision")
             self.position = newLocation
             self.tail.insert(0,newLocation)
-            self.mc.setBlock(int(newLocation.x), int(newLocation.y), int(newLocation.z), block.DIAMOND_BLOCK.id)
+            self.mc.setBlock(int(newLocation.x), int(newLocation.y), int(newLocation.z), self.block_id, self.wool_color)
             #self.mc.postToChat("length of tail: "+str(len(self.tail)))
             if(len(self.tail) > self.length):
                 lastSegment = self.tail[len(self.tail)-1]
@@ -104,3 +111,24 @@ class Snake3d:
             
     def setPosition(self, position):
         self.position = position
+
+    def setHeading(self, newHeading):
+        self.heading = newHeading
+
+    def update(self):
+        #TODO: maintain or change state based on current conditions
+        pass
+    
+    def stop(self):
+        self.running = False
+        
+    def run(self):
+        self.mc = minecraft.Minecraft.create()
+        self.running = True
+        self.draw()
+        while(self.running):
+            self.update()
+            self.move()
+            time.sleep(0.1)
+        self.erase()
+            
