@@ -3,6 +3,7 @@
 # Date: 06/27/2017
 #######################################
 from vector3d import Vector3d
+from snakeStates import SnakeState
 import mcpi.minecraft as minecraft
 import mcpi.block as block
 from math import *
@@ -116,8 +117,11 @@ class Snake3d(threading.Thread):
         self.heading = newHeading
 
     def update(self):
-        #TODO: maintain or change state based on current conditions
-        pass
+        #Maintain or change state based on current conditions
+        newState = self.state.update(self)
+        if(not(newState is None)):
+            self.state = newState
+            self.state.enter(self)   
     
     def stop(self):
         self.running = False
@@ -125,6 +129,8 @@ class Snake3d(threading.Thread):
     def run(self):
         self.mc = minecraft.Minecraft.create()
         self.running = True
+        self.state = SnakeState()
+        self.state.enter(self) 
         self.draw()
         while(self.running):
             self.update()
