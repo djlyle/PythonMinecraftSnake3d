@@ -3,7 +3,8 @@
 # Date: 06/27/2017
 #######################################
 from vector3d import Vector3d
-from snakeStates import SnakeState
+from snakeStates import SnakeStateNormal
+from snakeStates import SnakeStateSleeping
 import mcpi.minecraft as minecraft
 import mcpi.block as block
 from math import *
@@ -13,6 +14,7 @@ import threading
 class Snake3d(threading.Thread):
     def __init__(self, position, direction, length, health):
         self.position = position
+        self.speed = 1
         self.block_id = block.WOOL.id
         self.wool_color = 14
         self.directions = ["D","N","E","S","W","U"]
@@ -46,15 +48,24 @@ class Snake3d(threading.Thread):
             #self.mc.postToChat("collision")
             return True
         
+    def __drawSegment__(self, segment):
+        if(self.block_id == block.WOOL.id): 
+            self.mc.setBlock(int(segment.x), int(segment.y), int(segment.z), self.block_id, self.wool_color)
+        else:
+            self.mc.setBlock(int(segment.x), int(segment.y), int(segment.z), self.block_id)     
+            
     def draw(self):
         #self.mc.postToChat("Drawing segments of snake")
         for segment in self.tail:
+            self.__drawSegment__(segment)
             #self.mc.postToChat("Segment: "+str(segment.x)+","+str(segment.y)+","+str(segment.z))
-            self.mc.setBlock(int(segment.x), int(segment.y), int(segment.z), self.block_id, self.wool_color)
 
+    def __eraseSegment__(self, segment):
+        self.mc.setBlock(int(segment.x), int(segment.y), int(segment.z), block.AIR.id)
+            
     def erase(self):
         for segment in self.tail:
-            self.mc.setBlock(int(segment.x), int(segment.y), int(segment.z), block.AIR.id)
+            self.__eraseSegment__(segment)
             
 
     def get_next_loc(self):
@@ -75,16 +86,21 @@ class Snake3d(threading.Thread):
         return newLocation
     
     def move(self):
+        if(self.speed == 0):
+            return
         #self.mc.postToChat("starting move")
         #newLocation = self.get_next_loc()
         self.direction = 0 #Try going down first
         newLocation = self.get_next_loc()
         bCollision = self.collisionAt(newLocation)
         if(True == bCollision):
+            #Try first going in the direction our heading is set to
             self.direction = self.heading
             newLocation = self.get_next_loc()
             bCollision = self.collisionAt(newLocation)        
             if(True == bCollision):
+                #Direction of our current heading is blocked
+                #so try finding another direction to head in
                 for i in range(1,6):
                     if(i == self.heading):
                         continue
@@ -96,22 +112,36 @@ class Snake3d(threading.Thread):
                         break
                     
         #self.mc.postToChat("newLocation: "+str(newLocation.x)+","+str(newLocation.y)+","+str(newLocation.z))
-            
+        #Now update our position towards the chosen direction
         if(not(bCollision)):
             #self.mc.postToChat("no collision")
             self.position = newLocation
             self.tail.insert(0,newLocation)
-            self.mc.setBlock(int(newLocation.x), int(newLocation.y), int(newLocation.z), self.block_id, self.wool_color)
+            self.__drawSegment__(newLocation)
             #self.mc.postToChat("length of tail: "+str(len(self.tail)))
             if(len(self.tail) > self.length):
                 lastSegment = self.tail[len(self.tail)-1]
-                self.mc.setBlock(int(lastSegment.x), int(lastSegment.y), int(lastSegment.z), block.AIR.id)
+                self.__eraseSegment__(lastSegment)
                 #remove the last segment
                 self.tail.pop()
-                
-            
+
+    def setSpeed(self, speed):
+        self.speed = abs(speed)
+
+    def setWoolColor(self, color):
+        self.wool_color = color
+    
+    def setGoalPosition(self, position):
+        self.goalPosition = position
+
+    def getGoalPosition(self):
+        return self.goalPosition.clone()
+        
     def setPosition(self, position):
         self.position = position
+
+    def getPosition(self):
+        return self.position.clone()
 
     def setHeading(self, newHeading):
         self.heading = newHeading
@@ -129,7 +159,7 @@ class Snake3d(threading.Thread):
     def run(self):
         self.mc = minecraft.Minecraft.create()
         self.running = True
-        self.state = SnakeState()
+        self.state = SnakeStateNormal()
         self.state.enter(self) 
         self.draw()
         while(self.running):
