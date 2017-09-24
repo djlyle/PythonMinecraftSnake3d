@@ -165,6 +165,7 @@ class Snake3d(threading.Thread):
         while(self.running):
             self.update()
             self.move()
+            self.draw()
             time.sleep(0.1)
         self.erase()
             
