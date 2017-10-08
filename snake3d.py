@@ -29,6 +29,7 @@ class Snake3d(threading.Thread):
         #but it's heading (general direction of travel)
         #will change less often
         self.heading = self.direction
+        self.move_backwards = False
         self.length = length
         self.health = health
         self.tail = []
@@ -70,6 +71,7 @@ class Snake3d(threading.Thread):
 
     def get_next_loc(self):
         newLocation = self.tail[0].clone()
+
         #self.mc.postToChat("get_next_loc clone at:"+str(newLocation.x)+","+str(newLocation.y)+","+str(newLocation.z))
         if(self.directions[self.direction] == "U"):
             newLocation.y += 1
@@ -120,10 +122,20 @@ class Snake3d(threading.Thread):
             self.__drawSegment__(newLocation)
             #self.mc.postToChat("length of tail: "+str(len(self.tail)))
             if(len(self.tail) > self.length):
-                lastSegment = self.tail[len(self.tail)-1]
-                self.__eraseSegment__(lastSegment)
-                #remove the last segment
+                segment_to_erase = self.tail[len(self.tail)-1]
+                self.__eraseSegment__(segment_to_erase)
+                #remove the segment
                 self.tail.pop()
+        else:
+            #Couldn't move so toggle movement
+            self.toggleMovement()
+
+    def toggleMovement(self):
+        self.tail.reverse()
+        if(self.move_backwards):
+            self.move_backwards = False
+        else:
+            self.move_backwards = True
 
     def setSpeed(self, speed):
         self.speed = abs(speed)

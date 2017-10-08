@@ -30,7 +30,7 @@ class SnakeStateSleeping(SnakeState):
         snake.speed = 0
         snake.setWoolColor(9)
     def update(self, snake):
-        if(self.time_asleep > 99):
+        if(self.time_asleep > 10):
             return SnakeStateNormal()
         self.time_asleep += 1
         
