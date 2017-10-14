@@ -56,21 +56,21 @@ class SnakeStateCircleGoal(SnakeState):
         #- x -
         #-   -
         #4---3
-        if((xDiff == -standoff_dist) and
+        if((xDiff == standoff_dist) and
            (zDiff == -standoff_dist)):
-                #at NW corner 
+                #at a NW corner 
                 snake.setHeading("E")
-        elif((xDiff == standoff_dist) and
+        elif((xDiff == -standoff_dist) and
              (zDiff == -standoff_dist)):
-                #at NE corner
+                #at a NE corner
                 snake.setHeading("S")
-        elif((xDiff == standoff_dist) and
-             (zDiff == standoff_dist)):
-                #at SE corner
-                snake.setHeading("W")
         elif((xDiff == -standoff_dist) and
              (zDiff == standoff_dist)):
-                #at SW corner
+                #at a SE corner
+                snake.setHeading("W")
+        elif((xDiff == standoff_dist) and
+             (zDiff == standoff_dist)):
+                #at a SW corner
                 snake.setHeading("N")
         return self
 
