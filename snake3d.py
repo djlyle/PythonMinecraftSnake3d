@@ -33,6 +33,7 @@ class Snake3d(threading.Thread):
         self.length = length
         self.health = health
         self.tail = []
+        self.goal_position = None
         x = self.position.x
         y = self.position.y
         z = self.position.z
@@ -143,11 +144,15 @@ class Snake3d(threading.Thread):
     def setWoolColor(self, color):
         self.wool_color = color
     
-    def setGoalPosition(self, position):
-        self.goalPosition = position
+    def setGoalPosition(self, position, standoff_distance):
+        self.goal_position = position
+        self.standoff_distance = standoff_distance
 
     def getGoalPosition(self):
-        return self.goalPosition.clone()
+        return self.goal_position.clone()
+
+    def getGoalStandoffDistance(self):
+        return self.standoff_distance
         
     def setPosition(self, position):
         self.position = position
@@ -156,7 +161,13 @@ class Snake3d(threading.Thread):
         return self.position.clone()
 
     def setHeading(self, newHeading):
-        self.heading = newHeading
+        if newHeading in self.directions:
+            self.heading = self.directions.index(newHeading)
+        else:
+            self.heading = 0
+
+    def getHeading(self):
+        return self.directions[self.heading]
 
     def update(self):
         #Maintain or change state based on current conditions
