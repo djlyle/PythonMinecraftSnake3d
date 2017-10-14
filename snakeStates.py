@@ -40,7 +40,7 @@ class SnakeStateCircleGoal(SnakeState):
     def update(self, snake):
         snakePos = snake.getPosition()
         goalPos = snake.getGoalPosition()
-        standoff_dist = snake.GetGoalStandoffDistance()
+        standoff_dist = snake.getGoalStandoffDistance()
         xDiff = goalPos.x - snakePos.x
         zDiff = goalPos.z - snakePos.z
 
