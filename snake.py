@@ -4,6 +4,7 @@
 ####################################
 from vector3d import Vector3d
 from snake3d import Snake3d
+import terraform
 import mcpi.minecraft as minecraft
 import mcpi.block as block
 import time
@@ -13,11 +14,7 @@ mc = minecraft.Minecraft.create()
 mc.player.setPos(0,10,0)
 
 #Create landscape
-# Set upper half to air
-mc.setBlocks(-128,1,-128,128,128,128,block.AIR)
-# Set lower half of world to dirt with a layer of grass
-mc.setBlocks(-128,-1,-128,128,-128,128,block.DIRT)
-mc.setBlocks(-128,0,-128,128,0,128,block.GRASS)
+terraform.terraform(mc)
 
 #Post message to minecraft
 mc.postToChat("Minecraft snake 3d")
